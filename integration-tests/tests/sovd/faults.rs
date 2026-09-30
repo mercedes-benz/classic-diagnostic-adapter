@@ -1424,7 +1424,6 @@ async fn test_dtc_deletion_user_memory() {
 /// This test verifies:
 /// 1. Reading a single DTC of Development Fault Memory requests only relevant subfunctions (0x19 0x17 followed by 0x19 0x04 and 0x19 0x06) and returns the correct DTC information.
 /// 2. `FaultMem` read by status mask is not requested when reading by fault ID with a `DevelopmentFaultMemory` scope.
-
 #[tokio::test]
 #[allow(
     clippy::too_many_lines,
@@ -1512,6 +1511,11 @@ async fn test_dtc_read_by_fault_id_development_fault_memory() {
         !requests.iter().any(|request| request.contains("1902")),
         "Did not expect subfunction 0x02 to be called"
     );
+
+    //clear all dtcs from development memory to clean up
+    ecusim::clear_all_dtcs(&runtime.ecu_sim, ecu_name, development_fault_memory)
+        .await
+        .expect("Failed to clear Development DTCs in simulator");
 
     // clean up - delete the ecu lock
     locks::lock_operation(
@@ -1614,6 +1618,11 @@ async fn test_dtc_read_by_fault_id_fault_memory() {
         !requests.iter().any(|request| request.contains("1917")),
         "Did not expect subfunction 0x17 to be called"
     );
+
+    // Clear all DTCs from Standard memory to clean up
+    ecusim::clear_all_dtcs(&runtime.ecu_sim, ecu_name, fault_memory)
+        .await
+        .expect("Failed to clear Standard DTCs in simulator");
 
     // Clean up - delete the ECU lock
     locks::lock_operation(

@@ -358,9 +358,10 @@ def add_dtc_read_snapshots_by_dtc_number_service(
     Args:
         dlr: The diagnostic layer
         name: Service name (e.g., "reportDTCByStatusMask")
-        subfunction: The subfunction value (e.g, 0x02)
+        subfunction: The subfunction value (e.g, 0x04)
         description: Description of the service
         dtc_record_dop: OdxLinkRef for the DTC record,
+        user_memory: Whether the memory selection is included
     """
 
     memory_suffix = "UserMemory" if user_memory else ""
@@ -559,25 +560,6 @@ def add_dtc_read_snapshots_by_dtc_number_service(
         )
     )
 
-
-def add_dtc_read_user_memory_snapshots_by_dtc_number_service(
-    dlr: DiagLayerRaw,
-    name: str,
-    subfunction: int,
-    description: str,
-    dtc_record_dop: OdxLinkRef,
-):
-    """Add the user-memory snapshot service (UDS subfunction 0x18)."""
-    add_dtc_read_snapshots_by_dtc_number_service(
-        dlr,
-        name,
-        subfunction,
-        description,
-        dtc_record_dop,
-        user_memory=True,
-    )
-
-
 def add_dtc_read_ext_data_by_dtc_number_service(
     dlr: DiagLayerRaw,
     name: str,
@@ -592,9 +574,10 @@ def add_dtc_read_ext_data_by_dtc_number_service(
     Args:
         dlr: The diagnostic layer
         name: Service name (e.g., "reportDTCByStatusMask")
-        subfunction: The subfunction value (e.g, 0x02)
+        subfunction: The subfunction value (e.g, 0x06)
         description: Description of the service
         dtc_record_dop: OdxLinkRef for the DTC record,
+        user_memory: Whether the memory selection is included
     """
 
     memory_suffix = "UserMemory" if user_memory else ""
@@ -602,9 +585,9 @@ def add_dtc_read_ext_data_by_dtc_number_service(
         dlr,
         f"DtcReqExtDataRecordNrDop{memory_suffix}",
         [
-            (16, "First Occurence"),
-            (32, "Last Occurence"),
-            (254, "All Ext Data Records"),
+            (16, "First Occurrence"),
+            (32, "Last Occurrence"),
+            (254, "OBD extended data records"),
             (255, "All Ext Data Records"),
         ],
     )
@@ -781,25 +764,6 @@ def add_dtc_read_ext_data_by_dtc_number_service(
             pos_response_refs=[ref(response)],
         )
     )
-
-
-def add_dtc_read_user_memory_ext_data_by_dtc_number_service(
-    dlr: DiagLayerRaw,
-    name: str,
-    subfunction: int,
-    description: str,
-    dtc_record_dop: OdxLinkRef,
-):
-    """Add the user-memory extended-data service (UDS subfunction 0x19)."""
-    add_dtc_read_ext_data_by_dtc_number_service(
-        dlr,
-        name,
-        subfunction,
-        description,
-        dtc_record_dop,
-        user_memory=True,
-    )
-
 
 def add_dtc_read_services(dlr: DiagLayerRaw):
     """
@@ -1005,21 +969,23 @@ def add_dtc_read_services(dlr: DiagLayerRaw):
     )
 
     # 19 18 - Report Development Fault Memory DTC Snapshot Record By DTC Number
-    add_dtc_read_user_memory_snapshots_by_dtc_number_service(
+    add_dtc_read_ext_data_by_dtc_number_service(
         dlr,
         "Development_Fault_Memory_ReportDTCSnapshotRecordByDtcNumber",
         0x18,
         "Report Development Fault Memory DTC Snapshot Record By DTC Number",
         ref(development_fault_memory_dtc_record_structure.odx_id),
+        user_memory=True,
     )
 
     # 19 19 - Report Development Fault Memory DTC Extended Data Record By DTC Number
-    add_dtc_read_user_memory_ext_data_by_dtc_number_service(
+    add_dtc_read_ext_data_by_dtc_number_service(
         dlr,
         "Development_Fault_Memory_ReportDTCExtDataRecordByDtcNumber",
         0x19,
         "Report Development Fault Memory DTC Extended Data Record By DTC Number",
         ref(development_fault_memory_dtc_record_structure.odx_id),
+        user_memory=True
     )
 
 
