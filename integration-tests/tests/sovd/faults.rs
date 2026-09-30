@@ -1422,7 +1422,8 @@ async fn test_dtc_deletion_user_memory() {
 /// Test that reading DTCs by fault ID with a Development Fault Memory scope works correctly.
 ///
 /// This test verifies:
-/// 1. Reading a single DTC of Development Fault Memory requests only relevant subfunctions (0x19 0x17 followed by 0x19 0x04 and 0x19 0x06) and returns the correct DTC information.
+/// 1. Reading a single DTC of Development Fault Memory requests only relevant subfunctions 0x19 0x17 followed by
+///    0x19 0x18 and 0x19 0x19 and returns the correct DTC information.
 /// 2. `FaultMem` read by status mask is not requested when reading by fault ID with a `DevelopmentFaultMemory` scope.
 #[tokio::test]
 #[allow(
@@ -1532,7 +1533,8 @@ async fn test_dtc_read_by_fault_id_development_fault_memory() {
 /// Test that reading DTCs by fault ID with a Fault Memory scope works correctly.
 ///
 /// This test verifies:
-/// 1. Reading a single DTC of Fault Memory requests only relevant subfunctions (0x19 0x02 followed by 0x19 0x04 and 0x19 0x06) and returns the correct DTC information.
+/// 1. Reading a single DTC of Fault Memory requests only relevant subfunctions 0x19 0x02 followed by 0x19 0x04 and 0x19 0x06
+///    and returns the correct DTC information.
 /// 2. `DevelopmentFaultMemory` read by status mask is not requested when reading by fault ID with a `FaultMem` scope.
 #[tokio::test]
 #[allow(

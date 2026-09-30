@@ -222,6 +222,7 @@ def add_dtc_read_by_mask_service(
     subfunction: int,
     description: str,
     dtc_record_dop: OdxLinkRef,
+    user_memory: bool = False,
 ):
     """
     Add a DTC Reading service (0x19).
@@ -241,6 +242,18 @@ def add_dtc_read_by_mask_service(
                 sid_parameter_rq(0x19),
                 subfunction_rq(subfunction, "SubFunction"),
                 *dtc_status_parameters(dlr, 2),
+                *(
+                    [
+                        ValueParameter(
+                            short_name="MemorySelection",
+                            semantic="DATA",
+                            byte_position=3,
+                            dop_ref=ref(find_dop_by_shortname(dlr, "IDENTICAL_UINT_8")),
+                        )
+                    ]
+                    if user_memory
+                    else []
+                ),
             ],
         ),
     )
@@ -254,11 +267,24 @@ def add_dtc_read_by_mask_service(
             [
                 sid_parameter_pr(0x19 + 0x40),
                 matching_request_parameter_subfunction("SubFunction"),
-                *dtc_status_parameters(dlr, 2),
+                *(
+                    [
+                        matching_request_parameter(
+                            "MemorySelection",
+                            semantic="DATA",
+                            byte_length=1,
+                            byte_position=2,
+                            request_byte_position=3,
+                        )
+                    ]
+                    if user_memory
+                    else []
+                ),
+                *dtc_status_parameters(dlr, 3 if user_memory else 2),
                 ValueParameter(
                     short_name="DTCAndStatusRecord",
                     semantic="DATA",
-                    byte_position=3,
+                    byte_position=4 if user_memory else 3,
                     dop_ref=dtc_record_dop,
                 ),
             ]
@@ -278,70 +304,70 @@ def add_dtc_read_by_mask_service(
     )
 
 
-def add_dtc_read_development_fault_memory_by_mask_service(
-    dlr: DiagLayerRaw,
-    name: str,
-    subfunction: int,
-    description: str,
-    dtc_record_dop: OdxLinkRef,
-):
-    """Add the development fault memory DTC read service for UDS subfunction 0x17."""
-    request = Request(
-        odx_id=derived_id(dlr, f"RQ.RQ_{name}"),
-        short_name=f"RQ_{name}",
-        parameters=NamedItemList(
-            [
-                sid_parameter_rq(0x19),
-                subfunction_rq(subfunction, "SubFunction"),
-                *dtc_status_parameters(dlr, 2),
-                ValueParameter(
-                    short_name="MemorySelection",
-                    semantic="DATA",
-                    byte_position=3,
-                    dop_ref=ref(find_dop_by_shortname(dlr, "IDENTICAL_UINT_8")),
-                ),
-            ],
-        ),
-    )
-    dlr.requests.append(request)
+# def add_dtc_read_development_fault_memory_by_mask_service(
+#     dlr: DiagLayerRaw,
+#     name: str,
+#     subfunction: int,
+#     description: str,
+#     dtc_record_dop: OdxLinkRef,
+# ):
+#     """Add the development fault memory DTC read service for UDS subfunction 0x17."""
+#     request = Request(
+#         odx_id=derived_id(dlr, f"RQ.RQ_{name}"),
+#         short_name=f"RQ_{name}",
+#         parameters=NamedItemList(
+#             [
+#                 sid_parameter_rq(0x19),
+#                 subfunction_rq(subfunction, "SubFunction"),
+#                 *dtc_status_parameters(dlr, 2),
+#                 ValueParameter(
+#                     short_name="MemorySelection",
+#                     semantic="DATA",
+#                     byte_position=3,
+#                     dop_ref=ref(find_dop_by_shortname(dlr, "IDENTICAL_UINT_8")),
+#                 ),
+#             ],
+#         ),
+#     )
+#     dlr.requests.append(request)
 
-    response = Response(
-        response_type=ResponseType.POSITIVE,
-        odx_id=derived_id(dlr, f"PR.PR_{name}"),
-        short_name=f"PR_{name}",
-        parameters=NamedItemList(
-            [
-                sid_parameter_pr(0x19 + 0x40),
-                matching_request_parameter_subfunction("SubFunction"),
-                *dtc_status_parameters(dlr, 2),
-                matching_request_parameter(
-                    "MemorySelection",
-                    semantic="DATA",
-                    byte_length=1,
-                    byte_position=3,
-                    request_byte_position=3,
-                ),
-                ValueParameter(
-                    short_name="DTCAndStatusRecord",
-                    semantic="DATA",
-                    byte_position=4,
-                    dop_ref=dtc_record_dop,
-                ),
-            ]
-        ),
-    )
-    dlr.positive_responses.append(response)
+#     response = Response(
+#         response_type=ResponseType.POSITIVE,
+#         odx_id=derived_id(dlr, f"PR.PR_{name}"),
+#         short_name=f"PR_{name}",
+#         parameters=NamedItemList(
+#             [
+#                 sid_parameter_pr(0x19 + 0x40),
+#                 matching_request_parameter_subfunction("SubFunction"),
+#                 *dtc_status_parameters(dlr, 2),
+#                 matching_request_parameter(
+#                     "MemorySelection",
+#                     semantic="DATA",
+#                     byte_length=1,
+#                     byte_position=3,
+#                     request_byte_position=3,
+#                 ),
+#                 ValueParameter(
+#                     short_name="DTCAndStatusRecord",
+#                     semantic="DATA",
+#                     byte_position=4,
+#                     dop_ref=dtc_record_dop,
+#                 ),
+#             ]
+#         ),
+#     )
+#     dlr.positive_responses.append(response)
 
-    dlr.diag_comms_raw.append(
-        DiagService(
-            odx_id=derived_id(dlr, f"DC.{name}"),
-            short_name=name,
-            long_name=description,
-            functional_class_refs=[functional_class_ref(dlr, "FaultMem")],
-            request_ref=ref(request),
-            pos_response_refs=[ref(response)],
-        )
-    )
+#     dlr.diag_comms_raw.append(
+#         DiagService(
+#             odx_id=derived_id(dlr, f"DC.{name}"),
+#             short_name=name,
+#             long_name=description,
+#             functional_class_refs=[functional_class_ref(dlr, "FaultMem")],
+#             request_ref=ref(request),
+#             pos_response_refs=[ref(response)],
+#         )
+#     )
 
 
 def add_dtc_read_snapshots_by_dtc_number_service(
@@ -560,6 +586,7 @@ def add_dtc_read_snapshots_by_dtc_number_service(
         )
     )
 
+
 def add_dtc_read_ext_data_by_dtc_number_service(
     dlr: DiagLayerRaw,
     name: str,
@@ -765,6 +792,7 @@ def add_dtc_read_ext_data_by_dtc_number_service(
         )
     )
 
+
 def add_dtc_read_services(dlr: DiagLayerRaw):
     """
     Add DTC Read (0x19) services to the diagnostic layer.
@@ -960,12 +988,13 @@ def add_dtc_read_services(dlr: DiagLayerRaw):
     )
 
     # 19 17 - Report Development Fault Memory DTC By Status Mask
-    add_dtc_read_development_fault_memory_by_mask_service(
+    add_dtc_read_by_mask_service(
         dlr,
         "Development_Fault_Memory_ReportDTCByStatusMask",
         0x17,
         "Report Development Fault Memory DTC By Status Mask",
         ref(development_fault_memory_dtc_end_of_pdu.odx_id),
+        user_memory=True,
     )
 
     # 19 18 - Report Development Fault Memory DTC Snapshot Record By DTC Number
@@ -985,7 +1014,7 @@ def add_dtc_read_services(dlr: DiagLayerRaw):
         0x19,
         "Report Development Fault Memory DTC Extended Data Record By DTC Number",
         ref(development_fault_memory_dtc_record_structure.odx_id),
-        user_memory=True
+        user_memory=True,
     )
 
 
