@@ -297,78 +297,11 @@ def add_dtc_read_by_mask_service(
             odx_id=derived_id(dlr, f"DC.{name}"),
             short_name=name,
             long_name=description,
-            functional_class_refs=[functional_class_ref(dlr, "FaultMem")],
+            functional_class_refs=[functional_class_ref(dlr, "UserMem" if user_memory else "FaultMem")],
             request_ref=ref(request),
             pos_response_refs=[ref(response)],
         )
     )
-
-
-# def add_dtc_read_development_fault_memory_by_mask_service(
-#     dlr: DiagLayerRaw,
-#     name: str,
-#     subfunction: int,
-#     description: str,
-#     dtc_record_dop: OdxLinkRef,
-# ):
-#     """Add the development fault memory DTC read service for UDS subfunction 0x17."""
-#     request = Request(
-#         odx_id=derived_id(dlr, f"RQ.RQ_{name}"),
-#         short_name=f"RQ_{name}",
-#         parameters=NamedItemList(
-#             [
-#                 sid_parameter_rq(0x19),
-#                 subfunction_rq(subfunction, "SubFunction"),
-#                 *dtc_status_parameters(dlr, 2),
-#                 ValueParameter(
-#                     short_name="MemorySelection",
-#                     semantic="DATA",
-#                     byte_position=3,
-#                     dop_ref=ref(find_dop_by_shortname(dlr, "IDENTICAL_UINT_8")),
-#                 ),
-#             ],
-#         ),
-#     )
-#     dlr.requests.append(request)
-
-#     response = Response(
-#         response_type=ResponseType.POSITIVE,
-#         odx_id=derived_id(dlr, f"PR.PR_{name}"),
-#         short_name=f"PR_{name}",
-#         parameters=NamedItemList(
-#             [
-#                 sid_parameter_pr(0x19 + 0x40),
-#                 matching_request_parameter_subfunction("SubFunction"),
-#                 *dtc_status_parameters(dlr, 2),
-#                 matching_request_parameter(
-#                     "MemorySelection",
-#                     semantic="DATA",
-#                     byte_length=1,
-#                     byte_position=3,
-#                     request_byte_position=3,
-#                 ),
-#                 ValueParameter(
-#                     short_name="DTCAndStatusRecord",
-#                     semantic="DATA",
-#                     byte_position=4,
-#                     dop_ref=dtc_record_dop,
-#                 ),
-#             ]
-#         ),
-#     )
-#     dlr.positive_responses.append(response)
-
-#     dlr.diag_comms_raw.append(
-#         DiagService(
-#             odx_id=derived_id(dlr, f"DC.{name}"),
-#             short_name=name,
-#             long_name=description,
-#             functional_class_refs=[functional_class_ref(dlr, "FaultMem")],
-#             request_ref=ref(request),
-#             pos_response_refs=[ref(response)],
-#         )
-#     )
-
 
 def add_dtc_read_snapshots_by_dtc_number_service(
     dlr: DiagLayerRaw,
@@ -580,7 +513,7 @@ def add_dtc_read_snapshots_by_dtc_number_service(
             odx_id=derived_id(dlr, f"DC.{name}"),
             short_name=name,
             long_name=description,
-            functional_class_refs=[functional_class_ref(dlr, "FaultMem")],
+            functional_class_refs=[functional_class_ref(dlr, "UserMem" if user_memory else "FaultMem")],
             request_ref=ref(request),
             pos_response_refs=[ref(response)],
         )
@@ -786,7 +719,7 @@ def add_dtc_read_ext_data_by_dtc_number_service(
             odx_id=derived_id(dlr, f"DC.{name}"),
             short_name=name,
             long_name=description,
-            functional_class_refs=[functional_class_ref(dlr, "FaultMem")],
+            functional_class_refs=[functional_class_ref(dlr, "UserMem" if user_memory else "FaultMem")],
             request_ref=ref(request),
             pos_response_refs=[ref(response)],
         )
